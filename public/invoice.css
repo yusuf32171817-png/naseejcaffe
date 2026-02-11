@@ -1,0 +1,58 @@
+:root{
+  --teal:#2DB39F;
+  --brown:#764633;
+  --cocoa:#411A0E;
+  --ink:#111;
+  --muted:#555;
+}
+body{margin:0; background:#f2f3f6; font-family: system-ui, -apple-system, "Segoe UI", Tahoma, Arial, sans-serif;}
+.paper{
+  width:min(900px, 94vw);
+  margin:18px auto;
+  background:#fff;
+  border:1px solid #ddd;
+  border-radius:14px;
+  padding:18px;
+}
+.invHeader{display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap; border-bottom:2px solid #eee; padding-bottom:12px;}
+.brand{display:flex; gap:12px; align-items:center}
+.logo{width:52px;height:52px;border-radius:12px; background:#f7f7f7; padding:6px}
+.name{font-weight:900; font-size:1.2rem; color:var(--cocoa)}
+.sub{color:var(--muted)}
+.meta{min-width:260px}
+.meta div{margin:4px 0; color:var(--muted)}
+.meta span{display:inline-block; width:92px}
+
+.info{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:14px 0}
+.box{border:1px solid #eee; border-radius:12px; padding:12px}
+.boxTitle{font-weight:900; margin-bottom:8px; color:var(--cocoa)}
+.row{display:flex; justify-content:space-between; margin:6px 0; color:var(--muted)}
+
+.tableWrap{overflow:auto; margin-top:10px}
+.table{width:100%; border-collapse:collapse}
+.table th, .table td{border-bottom:1px solid #eee; padding:10px; text-align:right}
+.table th{background:#fafafa}
+
+.totals{margin-top:14px; border-top:2px solid #eee; padding-top:12px; max-width:380px; margin-right:auto}
+.trow{display:flex; justify-content:space-between; margin:8px 0; color:var(--muted)}
+.trow b{color:var(--ink)}
+.grand{font-size:1.1rem}
+.note{margin-top:10px; color:var(--muted); font-size:.95rem}
+
+.invFooter{display:flex; justify-content:space-between; align-items:center; margin-top:16px; flex-wrap:wrap; gap:10px}
+.btns{display:flex; gap:10px}
+button, a{
+  border:1px solid #ddd;
+  background:#fff;
+  padding:10px 14px;
+  border-radius:12px;
+  cursor:pointer;
+  text-decoration:none;
+  color:#111;
+}
+button:hover, a:hover{border-color: var(--teal)}
+@media print{
+  body{background:#fff}
+  .paper{border:none; margin:0; border-radius:0}
+  .btns{display:none}
+}
