@@ -330,8 +330,20 @@ a {
 .items {
   padding: 12px;
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 15px;
+}
+
+@media (max-width: 1100px) {
+  .items {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 800px) {
+  .items {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 .item {
@@ -364,13 +376,13 @@ a {
 
 .itemTitle {
   font-weight: 1000;
-  font-size: 1.05rem;
+  font-size: 0.95rem;
 }
 
 .itemSub {
   color: var(--muted);
-  font-size: .9rem;
-  margin-top: 4px
+  font-size: .8rem;
+  margin-top: 2px
 }
 
 .itemRight {
@@ -610,7 +622,9 @@ a {
   }
 
   .items {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    padding: 8px;
   }
 
   .itemRight {
@@ -622,12 +636,16 @@ a {
 
   .price {
     flex: 1;
-    min-width: 140px
+    min-width: 70px;
+    font-size: 0.8rem;
+    padding: 5px;
   }
 
   .addBtn {
     flex: 1;
-    min-width: 140px
+    min-width: 70px;
+    font-size: 0.8rem;
+    padding: 8px 5px;
   }
 
   .drawer {
