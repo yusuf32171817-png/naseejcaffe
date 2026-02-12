@@ -217,6 +217,25 @@ function renderMenu() {
 
     if (filtered.length === 0) return "";
 
+    const grouped = [];
+    const nameMap = new Map();
+
+    filtered.forEach(it => {
+      const match = it.name.match(/^(.+?)\s*\((.+?)\)$/);
+      if (match) {
+        const baseName = match[1].trim();
+        const variantName = match[2].trim();
+        if (!nameMap.has(baseName)) {
+          const prod = { ...it, displayName: baseName, variants: [], isGroup: true };
+          nameMap.set(baseName, prod);
+          grouped.push(prod);
+        }
+        nameMap.get(baseName).variants.push({ ...it, variantLabel: variantName });
+      } else {
+        grouped.push({ ...it, displayName: it.name, variants: [{ ...it, variantLabel: "" }], isGroup: false });
+      }
+    });
+
     return `
       <div class="cat">
         <div class="catTop">
@@ -227,37 +246,70 @@ function renderMenu() {
           <div class="catTag">${filtered.length} صنف</div>
         </div>
         <div class="items">
-          ${filtered
-        .map((it) => {
-          return `
-                <div class="item">
-                  <img class="itemImg" src="${it.image_url || `https://placehold.co/600x400/222/FFF?text=${encodeURIComponent(it.name)}`}" alt="${it.name}">
+          ${grouped.map((prod, pIdx) => {
+      const activeVariant = prod.variants[0];
+      const hasVariants = prod.variants.length > 1;
+
+      return `
+                <div class="item" id="prod-${catIndex}-${pIdx}">
+                  <img class="itemImg" src="${prod.image_url || `https://placehold.co/600x400/222/FFF?text=${encodeURIComponent(prod.displayName)}`}" alt="${prod.displayName}">
                   <div class="itemInfo">
-                    <div class="itemTitle">${it.name}</div>
-                    <div class="itemSub">${it.note ? it.note : ""}</div>
+                    <div class="itemTitle">${prod.displayName}</div>
+                    <div class="itemSub">${prod.note ? prod.note : ""}</div>
+                    
+                    ${hasVariants ? `
+                      <div class="variants">
+                        ${prod.variants.map((v, vIdx) => `
+                          <button class="varBtn ${vIdx === 0 ? 'active' : ''}" 
+                            onclick="selectVariant(${catIndex}, ${pIdx}, ${vIdx}, ${v.price}, '${v.id}')">
+                            ${v.variantLabel}
+                          </button>
+                        `).join("")}
+                      </div>
+                    ` : ""}
                   </div>
                   <div class="itemRight">
-                    <div class="price">${money(it.price)}</div>
-                    <button class="addBtn" data-add="${catIndex}:${it.originalIndex}">+ إضافة</button>
+                    <div class="price" id="price-${catIndex}-${pIdx}">${money(activeVariant.price)}</div>
+                    <button class="addBtn" id="add-${catIndex}-${pIdx}" 
+                      onclick="addFromGroup('${prod.displayName}', ${activeVariant.price}, '${prod.variants[0].variantLabel}')">
+                      + إضافة
+                    </button>
                   </div>
                 </div>
               `;
-        })
-        .join("")}
+    }).join("")}
         </div>
       </div>
     `;
   }).join("");
-
-  menuList.querySelectorAll("[data-add]").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const [catIndex, itemIndex] = btn.dataset.add.split(":");
-      const cat = MENU[Number(catIndex)];
-      const it = cat.items[Number(itemIndex)];
-      addToCart(it.name, it.price, it.note || null);
-    });
-  });
 }
+
+window.selectVariant = (catIdx, pIdx, vIdx, price, itemId) => {
+  const card = document.getElementById(`prod-${catIdx}-${pIdx}`);
+  if (!card) return;
+
+  // تحديث الأزرار
+  card.querySelectorAll('.varBtn').forEach((btn, i) => {
+    btn.classList.toggle('active', i === vIdx);
+  });
+
+  // تحديث السعر
+  const priceEl = document.getElementById(`price-${catIdx}-${pIdx}`);
+  if (priceEl) priceEl.innerText = Number(price).toFixed(3) + " د.ب";
+
+  // تحديث الزر (لإرسال البيانات الصحيحة للسلة)
+  const addBtn = document.getElementById(`add-${catIdx}-${pIdx}`);
+  const prodTitle = card.querySelector('.itemTitle').innerText;
+  const variants = card.querySelectorAll('.varBtn');
+  const label = variants[vIdx].innerText.trim();
+
+  addBtn.onclick = () => addFromGroup(prodTitle, price, label);
+};
+
+window.addFromGroup = (baseName, price, variantLabel) => {
+  const fullName = variantLabel ? `${baseName} (${variantLabel})` : baseName;
+  addToCart(fullName, price);
+};
 
 // ============== Checkout ==============
 
@@ -315,7 +367,7 @@ async function checkout() {
     closeCheckout();
     toast("تم تسجيل الطلب بنجاح ✅");
 
-    window.location.href = `/success.html?orderNo=${encodeURIComponent(data.order_no)}`;
+    window.location.href = `/success.html?orderId=${data.order_id}`;
   } catch (e) {
     if (hintEl) hintEl.textContent = "تعذر الاتصال بالسيرفر.";
     btnCheckout.disabled = false;

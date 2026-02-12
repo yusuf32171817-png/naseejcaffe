@@ -188,7 +188,7 @@ const makeOrderNo = () => {
   const m = String(now.getMonth() + 1).padStart(2, "0");
   const d = String(now.getDate()).padStart(2, "0");
   const r = Math.random().toString(36).slice(2, 6).toUpperCase();
-  return `NSJ - ${y}${m}${d} -${r} `;
+  return `NSJ-${y}${m}${d}-${r}`;
 };
 
 const money3 = (n) => Number(n || 0).toFixed(3);
@@ -312,9 +312,9 @@ app.post("/api/orders", (req, res) => {
   });
 
   const subtotal = items.reduce((a, b) => a + b.line_total, 0);
-  const vatRate = typeof body.vat_rate === "number" ? body.vat_rate : 0.10; // 10% افتراضي
-  const vatAmount = subtotal * vatRate;
-  const total = subtotal + vatAmount;
+  const vatRate = 0;
+  const vatAmount = 0;
+  const total = subtotal;
 
   const insertOrder = db.prepare(`
     INSERT INTO orders
@@ -437,10 +437,25 @@ app.patch("/api/orders/:id/status", (req, res) => {
   const allowed = new Set(["new", "preparing", "ready", "done"]);
   if (!allowed.has(status)) return res.status(400).json({ ok: false, error: "حالة غير صالحة" });
 
-  const info = db.prepare(`UPDATE orders SET status = ? WHERE id = ? `).run(status, id);
+  const info = db.prepare(`UPDATE orders SET status = ? WHERE id = ?`).run(status, id);
   if (info.changes === 0) return res.status(404).json({ ok: false, error: "الطلب غير موجود" });
-
   res.json({ ok: true });
+});
+
+app.get("/api/orders/info", (req, res) => {
+  const orderId = req.query.orderId;
+  const orderNo = req.query.orderNo;
+
+  let order;
+  if (orderId) {
+    order = db.prepare(`SELECT * FROM orders WHERE id = ?`).get(Number(orderId));
+  } else if (orderNo) {
+    order = db.prepare(`SELECT * FROM orders WHERE TRIM(order_no) = ?`).get(String(orderNo).trim());
+  }
+
+  if (!order) return res.status(404).json({ ok: false, error: "الطلب غير موجود" });
+  const items = db.prepare(`SELECT * FROM order_items WHERE order_id = ?`).all(order.id);
+  res.json({ ok: true, order, items });
 });
 
 // حذف طلب

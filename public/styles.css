@@ -385,6 +385,30 @@ a {
   margin-top: 2px
 }
 
+.variants {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+
+.varBtn {
+  border: 1px solid rgba(255, 255, 255, .1);
+  background: rgba(255, 255, 255, .05);
+  color: var(--text);
+  padding: 4px 8px;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.varBtn.active {
+  background: var(--teal);
+  border-color: var(--teal);
+  color: #fff;
+}
+
 .itemRight {
   display: flex;
   align-items: center;

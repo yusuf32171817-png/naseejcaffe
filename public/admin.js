@@ -71,8 +71,7 @@ async function render() {
       <div class="card orderCard">
         <div class="orderCardTop">
           <div class="orderTitle">
-            <span class="orderNo">${o.order_no}</span>
-            <span class="orderTime">${fmtTime(o.created_at)}</span>
+            <span class="orderTime" style="margin-right:0; font-weight:1000; font-size:1.1rem; color:var(--teal)">${fmtTime(o.created_at)}</span>
           </div>
           <button class="btn btnDel" data-del="${o.id}">حذف</button>
         </div>
@@ -201,10 +200,11 @@ async function loadMenuAdmin() {
         ${items.map(it => `
           <div style="border:1px solid rgba(255,255,255,.10); border-radius:16px; padding:10px; background: rgba(10,12,15,.35);">
             <div style="display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap; align-items:center;">
-              <div style="font-weight:900;">
-                <span style="color:var(--teal)">${it.tag}</span> / ${it.category} — ${it.name}
+              <div style="font-weight:900; margin-bottom: 8px;">
+                <span style="color:var(--teal)">${it.tag}</span> / ${it.category}
               </div>
               <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+                <input class="input" style="width:200px; font-weight:bold;" data-name="${it.id}" value="${it.name}" placeholder="اسم المنتج">
                 <label style="display:flex; gap:8px; align-items:center;">
                   <input type="checkbox" data-av="${it.id}" ${Number(it.is_active) === 1 ? "checked" : ""}>
                   متوفر
@@ -224,16 +224,19 @@ async function loadMenuAdmin() {
     menuAdminList.querySelectorAll("[data-save]").forEach(btn => {
       btn.addEventListener("click", async () => {
         const id = btn.getAttribute("data-save");
+        const nameInput = menuAdminList.querySelector(`[data-name="${id}"]`);
         const priceInput = menuAdminList.querySelector(`[data-price="${id}"]`);
         const avInput = menuAdminList.querySelector(`[data-av="${id}"]`);
         const imgInput = menuAdminList.querySelector(`[data-img="${id}"]`);
+
+        const name = nameInput.value.trim();
         const price = Number(priceInput.value);
         const is_active = !!avInput.checked;
         const image_url = imgInput.value.trim() || null;
 
         const res2 = await api(`/api/admin/menu/items/${id}`, {
           method: "PUT",
-          body: JSON.stringify({ price, is_active, image_url })
+          body: JSON.stringify({ name, price, is_active, image_url })
         });
         if (res2.ok) {
           const statusEl = document.getElementById(`status-${id}`);
@@ -329,17 +332,72 @@ let soundTimer = null;
 
 function playOrderSound() {
   if (orderSound) {
-    orderSound.currentTime = 0;
+    // محاكاة "الضغطة" الأولى برمجياً عند وصول الطلب
+    // نحاول تشغيل الصوت مرتين: مرة سريعة جداً لفك القفل، والثانية هي الصوت الفعلي
+    orderSound.volume = 0.1;
     orderSound.play().then(() => {
+      // إذا نجح التشغيل (يعني المتصفح سمح)، نرفع الصوت ونبدأ من البداية
+      orderSound.pause();
+      orderSound.currentTime = 0;
+      orderSound.volume = 1.0;
+
+      // التشغيل الفعلي
+      setTimeout(() => {
+        orderSound.play().catch(err => console.error("Final play failed:", err));
+      }, 50);
+
       if (soundTimer) clearTimeout(soundTimer);
       soundTimer = setTimeout(() => {
         stopOrderSound();
       }, 20000);
     }).catch(e => {
-      toast("يرجى الضغط على أي مكان في الصفحة لتفعيل الصوت 🔇");
+      // إذا كان المتصفح لا يزال يعترض (نادراً بعد الضغط على الدخول)
+      console.warn("Autoplay still blocked, attempting silent prime...");
+      toast("وصل طلب جديد! يرجى التفاعل مع الصفحة لسماع التنبيه 🔔");
     });
   }
 }
+
+const btnStartDashboard = document.getElementById("btnStartDashboard");
+const audioOverlay = document.getElementById("audioOverlay");
+
+if (btnStartDashboard) {
+  btnStartDashboard.addEventListener("click", () => {
+    if (orderSound) {
+      // تشغيل الصوت لأجزاء من الثانية لفك القفل
+      orderSound.volume = 0.5;
+      orderSound.play().then(() => {
+        // إيقاف فوري بعد 100 ملي ثانية
+        setTimeout(() => {
+          orderSound.pause();
+          orderSound.currentTime = 0;
+          console.log("Audio unlocked via Start Button ✅");
+          if (audioOverlay) audioOverlay.style.display = "none";
+          toast("تم تفعيل جرس التنبيهات بنجاح 🔔");
+        }, 150);
+      }).catch(e => {
+        console.error("Start Audio Error:", e);
+        if (audioOverlay) audioOverlay.style.display = "none";
+      });
+    } else {
+      if (audioOverlay) audioOverlay.style.display = "none";
+    }
+  });
+}
+
+// حل إضافي احتياطي لأي ضغطة في الصفحة
+function primeAudio() {
+  if (orderSound) {
+    orderSound.play().then(() => {
+      orderSound.pause();
+      orderSound.currentTime = 0;
+      document.removeEventListener("click", primeAudio);
+      document.removeEventListener("touchstart", primeAudio);
+    }).catch(() => { });
+  }
+}
+document.addEventListener("click", primeAudio);
+document.addEventListener("touchstart", primeAudio);
 
 function stopOrderSound() {
   if (orderSound) {

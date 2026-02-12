@@ -1,86 +1,85 @@
 <!doctype html>
 <html lang="ar" dir="rtl">
+
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>فاتورة | النسيج كافيه</title>
+  <title>فاتورة النسيج كافيه</title>
+  <link rel="icon"
+    href="https://raw.githubusercontent.com/banijamrahclub/caffe/207bdaf96921de7784c59fb2c08521d167fea481/alnaseej%20logo1.png"
+    type="image/png">
   <link rel="stylesheet" href="invoice.css" />
 </head>
+
 <body>
-.paper{
-  width: 80mm;
-  margin: 10px auto;
-  background:#fff;
-  border:1px solid #ddd;
-  border-radius:12px;
-  padding:10px;
-}
+  <main class="paper">
+    <div class="center">
+      <img class="logo"
+        src="https://raw.githubusercontent.com/banijamrahclub/caffe/207bdaf96921de7784c59fb2c08521d167fea481/alnaseej%20logo1.png"
+        alt="النسيج كافيه">
+      <div class="brand-name">النسيج كافيه</div>
+      <div class="invoice-title">فاتورة ضريبية مبسطة</div>
+    </div>
 
-    <header class="invHeader">
-      <div class="brand">
-        <img class="logo" src="logo.png" alt="النسيج كافيه" onerror="this.style.display='none'">
-        <div>
-          <div class="name">النسيج كافيه</div>
-          <div class="sub">فاتورة ضريبية — Tax Invoice</div>
-        </div>
+    <section class="meta-info">
+      <div>
+        <span>التاريخ:</span>
+        <b id="invDate">—</b>
       </div>
-      <div class="meta">
-        <div><span>Invoice No:</span> <b id="invNo">—</b></div>
-        <div><span>Date:</span> <b id="invDate">—</b></div>
-        <div><span>Pickup:</span> <b id="invPickup">—</b></div>
-      </div>
-    </header>
-
-   .info{
-  display:grid;
-  grid-template-columns:1fr;
-  gap:10px;
-  margin:10px 0;
-}
-
-      <div class="box">
-        <div class="boxTitle">بيانات العميل</div>
-        <div class="row"><span>الهاتف:</span> <b id="cPhone">—</b></div>
-        <div class="row"><span>السيارة:</span> <b id="cCar">—</b></div>
-      </div>
-      <div class="box">
-        <div class="boxTitle">بيانات المنشأة</div>
-        <div class="row"><span>الفرع:</span> <b>—</b></div>
-        <div class="row"><span>VAT No:</span> <b>—</b></div>
+      <div>
+        <span>وقت الاستلام:</span>
+        <b id="invPickup">—</b>
       </div>
     </section>
 
-    <section class="tableWrap">
-      <table class="table">
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>الصنف</th>
-            <th>السعر</th>
-            <th>الكمية</th>
-            <th>الإجمالي</th>
-          </tr>
-        </thead>
-        <tbody id="invItems"></tbody>
-      </table>
-    </section>
-
-    <section class="totals">
-      <div class="trow"><span>Subtotal</span><b id="tSub">0.000</b></div>
-      <div class="trow"><span>VAT</span><b id="tVat">0.000</b></div>
-      <div class="trow grand"><span>Total</span><b id="tTotal">0.000</b></div>
-      <div class="note" id="invNote"></div>
-    </section>
-
-    <footer class="invFooter">
-      <div class="small">شكراً لزيارتكم — Thank you</div>
-      <div class="btns">
-        <button id="btnPrint">طباعة</button>
-        <a id="btnBack" href="/">رجوع</a>
+    <section class="customer-box">
+      <div class="title">بيانات العميل</div>
+      <div style="display: flex; justify-content: space-between;">
+        <span>الهاتف:</span>
+        <b id="cPhone">—</b>
       </div>
-    </footer>
+      <div style="display: flex; justify-content: space-between; margin-top: 4px;">
+        <span>السيارة:</span>
+        <b id="cCar">—</b>
+      </div>
+    </section>
+
+    <table class="items-table">
+      <thead>
+        <tr>
+          <th style="width: 60%;">الصنف</th>
+          <th style="width: 15%; text-align: center;">الكمية</th>
+          <th style="width: 25%; text-align: left;">الإجمالي</th>
+        </tr>
+      </thead>
+      <tbody id="invItems">
+        <!-- يتم تحميل العناصر هنا -->
+      </tbody>
+    </table>
+
+    <section class="totals-area">
+      <div class="total-row">
+        <span>إجمالي الأصناف:</span>
+        <b id="tSub">0.000</b>
+      </div>
+      <div class="total-row grand-total">
+        <span>المبلغ الإجمالي:</span>
+        <b id="tTotal">0.000</b>
+      </div>
+    </section>
+
+    <div class="center">
+      <img id="qrCode" class="qr-code" src="" alt="QR">
+      <div class="footer-msg">نشكركم على زيارتكم<br>نأمل رؤيتكم مجدداً</div>
+    </div>
   </main>
+
+  <div class="action-btns">
+    <button id="btnPrint" class="btn">🖨️ طباعة الفاتورة</button>
+    <a href="/admin.html" class="btn btn-secondary">🏠 العودة للإدارة</a>
+  </div>
 
   <script src="invoice.js"></script>
 </body>
+
 </html>
