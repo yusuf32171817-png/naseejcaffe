@@ -393,10 +393,21 @@ app.get("/api/orders", (req, res) => {
     FROM orders
     WHERE ${where}
     ORDER BY id DESC
-    LIMIT 500
+    LIMIT 200
   `).all(params);
 
-  res.json({ ok: true, orders: rows });
+  // جلب الأصناف لكل طلب لتسريع العرض في لوحة الإدارة
+  const ordersWithItems = rows.map(order => {
+    const items = db.prepare(`
+      SELECT item_name, unit_price, qty, line_total
+      FROM order_items
+      WHERE order_id = ?
+      ORDER BY id ASC
+    `).all(order.id);
+    return { ...order, items };
+  });
+
+  res.json({ ok: true, orders: ordersWithItems });
 });
 
 // جلب طلب واحد + أصنافه (للفاتورة/التفاصيل)
@@ -442,6 +453,11 @@ app.delete("/api/orders/:id", (req, res) => {
 
 
 // ===== Admin Menu Management =====
+app.get("/api/admin/menu/categories", requireAdmin, (req, res) => {
+  const rows = db.prepare("SELECT DISTINCT category FROM menu_items ORDER BY category ASC").all();
+  res.json({ ok: true, categories: rows.map(r => r.category) });
+});
+
 app.get("/api/admin/menu/items", requireAdmin, (req, res) => {
   const rows = db.prepare("SELECT * FROM menu_items ORDER BY id DESC").all();
   res.json({ ok: true, items: rows });
@@ -460,14 +476,24 @@ VALUES(?, ?, ?, ?, ?, ?, 1, ?)
 app.put("/api/admin/menu/items/:id", requireAdmin, (req, res) => {
   const id = Number(req.params.id);
   const { name, price, is_active, image_url } = req.body;
+
+  // نستخدم COALESCE للحقول التي لا نريد مسحها بالخطأ، 
+  // أما رابط الصورة فنريد السماح بمسحه (إرسال null أو نص فارغ)
   db.prepare(`
     UPDATE menu_items 
     SET name = COALESCE(?, name),
-  price = COALESCE(?, price),
-  is_active = COALESCE(?, is_active),
-  image_url = COALESCE(?, image_url)
+        price = COALESCE(?, price),
+        is_active = COALESCE(?, is_active),
+        image_url = ?
     WHERE id = ?
-  `).run(name, price, is_active !== undefined ? (is_active ? 1 : 0) : null, image_url || null, id);
+  `).run(
+    name || null,
+    price !== undefined ? Number(price) : null,
+    is_active !== undefined ? (is_active ? 1 : 0) : null,
+    image_url ? image_url.trim() : null,
+    id
+  );
+
   res.json({ ok: true });
   io.emit("menu_updated");
 });

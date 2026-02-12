@@ -4,8 +4,7 @@ async function api(url, opts = {}) {
   return fetch(url, { ...opts, headers });
 }
 
-const rowsEl = document.getElementById("rows");
-const detailsEl = document.getElementById("details");
+const ordersListEl = document.getElementById("ordersList");
 const btnRefresh = document.getElementById("btnRefresh");
 const searchEl = document.getElementById("search");
 const statusFilter = document.getElementById("statusFilter");
@@ -32,7 +31,7 @@ function fmtTime(iso) {
 function badge(status) {
   const map = {
     new: ["جديد", "bNew"],
-    preparing: ["قيد التحضير", "bPrep"],
+    preparing: ["تحضير", "bPrep"],
     ready: ["جاهز", "bReady"],
     done: ["مكتمل", "bDone"]
   };
@@ -53,111 +52,74 @@ async function fetchOrders() {
 
 async function render() {
   const orders = await fetchOrders();
-  if (!rowsEl) return;
+  if (!ordersListEl) return;
 
   if (orders.length === 0) {
-    rowsEl.innerHTML = `<tr><td colspan="9" class="muted">لا توجد طلبات…</td></tr>`;
+    ordersListEl.innerHTML = `<div class="hint" style="text-align:center; padding:40px;">لا توجد طلبات حالياً…</div>`;
     return;
   }
 
-  rowsEl.innerHTML = orders.map(o => `
-    <tr>
-      <td><b>${o.order_no}</b><div class="muted">#${o.id}</div></td>
-      <td>${fmtTime(o.created_at)}</td>
-      <td>${o.customer_phone}</td>
-      <td>${o.car_no ? o.car_no : `<span class="muted">—</span>`}</td>
-      <td>${o.pickup_time}</td>
-      <td><b>${money(o.total)}</b></td>
-      <td>${badge(o.status)}</td>
-      <td>
-        <button class="rowBtn" data-open="${o.id}">عرض</button>
-        <a class="rowBtn" style="margin-right:6px" href="/invoice.html?orderId=${o.id}" target="_blank">فاتورة</a>
-      </td>
-      <td>
-        <button class="smallBtn" data-set="${o.id}:new">جديد</button>
-        <button class="smallBtn" data-set="${o.id}:preparing">تحضير</button>
-        <button class="smallBtn" data-set="${o.id}:ready">جاهز</button>
-        <button class="smallBtn" data-set="${o.id}:done">تم</button>
-        <button class="smallBtn" data-del="${o.id}">حذف</button>
-      </td>
-    </tr>
-  `).join("");
+  ordersListEl.innerHTML = orders.map(o => {
+    const itemsHtml = (o.items || []).map(it => `
+      <div style="display:flex; justify-content:space-between; padding:4px 0; border-bottom:1px solid rgba(255,255,255,0.05); font-size:0.95rem;">
+        <span><b>${it.qty}x</b> ${it.item_name}</span>
+        <span>${money(it.line_total)}</span>
+      </div>
+    `).join("");
 
-  rowsEl.querySelectorAll("[data-open]").forEach(b => {
-    b.addEventListener("click", () => openDetails(b.dataset.open));
-  });
-  rowsEl.querySelectorAll("[data-set]").forEach(b => {
-    b.addEventListener("click", () => {
-      const [id, st] = b.dataset.set.split(":");
-      setStatus(id, st);
-    });
-  });
-  rowsEl.querySelectorAll("[data-del]").forEach(b => {
+    return `
+      <div class="card orderCard">
+        <div class="orderCardTop">
+          <div class="orderTitle">
+            <span class="orderNo">${o.order_no}</span>
+            <span class="orderTime">${fmtTime(o.created_at)}</span>
+          </div>
+          <button class="btn btnDel" data-del="${o.id}">حذف</button>
+        </div>
+        
+        <div class="orderGrid">
+          <div class="orderInfo">
+            <div class="infoRow"><span>الهاتف:</span> <b>${o.customer_phone}</b></div>
+            <div class="infoRow"><span>السيارة:</span> <b>${o.car_no || "—"}</b></div>
+            <div class="infoRow"><span>الاستلام:</span> <b>${o.pickup_time}</b></div>
+            ${o.note ? `<div class="infoRow" style="color:var(--teal)"><span>ملاحظة:</span> <b>${o.note}</b></div>` : ""}
+            <div class="infoRow" style="margin-top:10px; font-size:1.1rem; border-top:1px dashed var(--stroke); padding-top:10px;">
+              <span>المجموع:</span> <b style="color:var(--teal)">${money(o.total)}</b>
+            </div>
+          </div>
+          
+          <div class="orderItems">
+            <div style="font-weight:900; margin-bottom:8px; display:flex; justify-content:space-between; color:var(--muted)">
+              <span>الأصناف:</span>
+              <span>${badge(o.status)}</span>
+            </div>
+            ${itemsHtml || `<div class="hint">لا توجد أصناف</div>`}
+          </div>
+        </div>
+        
+        <div style="margin-top:15px; text-align:left;">
+          <a class="rowBtn" href="/invoice.html?orderId=${o.id}" target="_blank">📄 فـاتـورة</a>
+        </div>
+      </div>
+    `;
+  }).join("");
+
+  ordersListEl.querySelectorAll("[data-del]").forEach(b => {
     b.addEventListener("click", () => {
       const id = b.dataset.del;
-      if (confirm("حذف الطلب؟")) delOrder(id);
+      if (confirm("هل أنت متأكد من حذف الطلب نهائياً؟")) delOrder(id);
     });
   });
-}
-
-async function openDetails(id) {
-  const res = await fetch(`/api/orders/${id}`);
-  const data = await res.json();
-  if (!data.ok) return;
-
-  const o = data.order;
-  const items = data.items || [];
-
-  const itemsHtml = items.map(it => `
-    <li><b>${it.item_name}</b> — ${it.qty} × ${money(it.unit_price)} = <b>${money(it.line_total)}</b></li>
-  `).join("");
-
-  detailsEl.innerHTML = `
-    <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;">
-      <div>
-        <div><b>رقم الطلب:</b> ${o.order_no}</div>
-        <div><b>الوقت:</b> ${fmtTime(o.created_at)}</div>
-        <div><b>الهاتف:</b> ${o.customer_phone}</div>
-        <div><b>السيارة:</b> ${o.car_no || "—"}</div>
-        <div><b>الاستلام:</b> ${o.pickup_time}</div>
-        <div><b>الحالة:</b> ${badge(o.status)}</div>
-      </div>
-      <div>
-        <div><b>Subtotal:</b> ${money(o.subtotal)}</div>
-        <div><b>VAT:</b> ${money(o.vat_amount)} (${Math.round(o.vat_rate * 100)}%)</div>
-        <div><b>Total:</b> ${money(o.total)}</div>
-      </div>
-    </div>
-    <hr style="border:0;border-top:1px solid rgba(255,255,255,.10);margin:12px 0;">
-    <div><b>الأصناف:</b></div>
-    <ol style="margin:10px 18px 0; color: rgba(255,255,255,.88)">
-      ${itemsHtml || `<li class="muted">لا توجد أصناف</li>`}
-    </ol>
-    <div style="margin-top:12px; display:flex; gap:10px; flex-wrap:wrap;">
-      <a class="btn btnPrimary" href="/invoice.html?orderId=${o.id}" target="_blank">فتح الفاتورة</a>
-    </div>
-  `;
-}
-
-async function setStatus(id, status) {
-  const res = await fetch(`/api/orders/${id}/status`, {
-    method: "PATCH",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ status })
-  });
-  const data = await res.json();
-  if (!data.ok) { toast("فشل تحديث الحالة"); return; }
-  toast("تم التحديث");
-  render();
 }
 
 async function delOrder(id) {
-  const res = await fetch(`/api/orders/${id}`, { method: "DELETE" });
-  const data = await res.json();
-  if (!data.ok) { toast("فشل الحذف"); return; }
-  detailsEl.textContent = "اختر طلب لعرض التفاصيل…";
-  toast("تم الحذف");
-  render();
+  try {
+    const res = await api(`/api/orders/${id}`, { method: "DELETE" });
+    const data = await res.json();
+    if (!data.ok) { toast("فشل المسح"); return; }
+    toast("تم حذف الطلب");
+    render();
+  } catch (e) { toast("خطأ في الاتصال"); }
 }
 
 btnRefresh?.addEventListener("click", render);
@@ -173,9 +135,10 @@ const cafeStateHint = document.getElementById("cafeStateHint");
 const mCat = document.getElementById("mCat");
 const mName = document.getElementById("mName");
 const mPrice = document.getElementById("mPrice");
-const btnAddMenuItem = document.getElementById("btnAddItem");
+const btnAddItem = document.getElementById("btnAddItem");
 const menuAdminHint = document.getElementById("menuAdminHint");
 const menuAdminList = document.getElementById("menuAdminList");
+const catList = document.getElementById("catList");
 
 let cafeOpen = true;
 
@@ -211,6 +174,17 @@ async function toggleCafe() {
   }
 }
 
+async function loadCategories() {
+  if (!catList) return;
+  try {
+    const res = await api("/api/admin/menu/categories");
+    const data = await res.json();
+    if (data.ok && data.categories) {
+      catList.innerHTML = data.categories.map(c => `<option value="${c}">`).join("");
+    }
+  } catch (e) { }
+}
+
 async function loadMenuAdmin() {
   if (!menuAdminList) return;
   menuAdminList.innerHTML = "جاري التحميل...";
@@ -239,6 +213,7 @@ async function loadMenuAdmin() {
                 <input class="input" style="width:200px;" data-img="${it.id}" value="${it.image_url || ""}" placeholder="رابط الصورة">
                 <button class="btn btnPrimary" data-save="${it.id}">حفظ</button>
                 <button class="btn" style="background:rgba(255,107,107,0.1); border-color:rgba(255,107,107,0.2); color:#ff6b6b;" data-delete="${it.id}">حذف</button>
+                <span id="status-${it.id}" style="font-size:0.8rem; color:var(--teal)"></span>
               </div>
             </div>
           </div>
@@ -261,8 +236,11 @@ async function loadMenuAdmin() {
           body: JSON.stringify({ price, is_active, image_url })
         });
         if (res2.ok) {
-          menuAdminHint.textContent = "تم حفظ التعديل ✅";
-          setTimeout(() => menuAdminHint.textContent = "", 1500);
+          const statusEl = document.getElementById(`status-${id}`);
+          if (statusEl) {
+            statusEl.textContent = "تم الحفظ ✅";
+            setTimeout(() => statusEl.textContent = "", 2000);
+          }
         }
       });
     });
@@ -276,6 +254,7 @@ async function loadMenuAdmin() {
           menuAdminHint.textContent = "تم الحذف بنجاح ✅";
           setTimeout(() => menuAdminHint.textContent = "", 1500);
           loadMenuAdmin();
+          loadCategories();
         }
       });
     });
@@ -299,7 +278,6 @@ async function addMenuItem() {
     return;
   }
 
-  // تحديد القسم تلقائياً بناءً على التصنيف لتبسيط العملية
   const drinksCategories = ["مشروبات", "Drinks", "عصائر", "قهوة", "شاي", "بارد", "حار"];
   const tag = drinksCategories.some(c => category.includes(c)) ? "المشروبات" : "الحلويات";
   const image_url = (document.getElementById("mImg")?.value || "").trim();
@@ -320,21 +298,26 @@ async function addMenuItem() {
     mCat.value = "";
     const mImgInput = document.getElementById("mImg");
     if (mImgInput) mImgInput.value = "";
+
     menuAdminHint.textContent = "تمت الإضافة ✅";
     setTimeout(() => menuAdminHint.textContent = "", 1500);
+
     await loadMenuAdmin();
+    await loadCategories();
   } catch (e) {
     menuAdminHint.textContent = "خطأ في الاتصال";
   }
 }
 
 btnCafeToggle?.addEventListener("click", toggleCafe);
-btnAddMenuItem?.addEventListener("click", addMenuItem);
+btnAddItem?.addEventListener("click", addMenuItem);
 
 if (btnCafeToggle && menuAdminList) {
   loadCafeState();
   loadMenuAdmin();
+  loadCategories();
 }
+
 // ===== Real-time Updates (Socket.io) =====
 const socket = typeof io !== 'undefined' ? io() : null;
 const orderSound = document.getElementById("orderSound");
@@ -348,14 +331,11 @@ function playOrderSound() {
   if (orderSound) {
     orderSound.currentTime = 0;
     orderSound.play().then(() => {
-      console.log("Sound playing...");
       if (soundTimer) clearTimeout(soundTimer);
-      // التوقف بعد 20 ثانية إذا لم يتم إيقافه يدوياً
       soundTimer = setTimeout(() => {
         stopOrderSound();
       }, 20000);
     }).catch(e => {
-      console.log("Sound play blocked by browser. Click anywhere to enable.", e);
       toast("يرجى الضغط على أي مكان في الصفحة لتفعيل الصوت 🔇");
     });
   }
@@ -370,10 +350,7 @@ function stopOrderSound() {
   orderPopup?.classList.remove("show");
 }
 
-if (btnStopSound) {
-  btnStopSound.addEventListener("click", stopOrderSound);
-}
-
+if (btnStopSound) btnStopSound.addEventListener("click", stopOrderSound);
 if (btnTestSound) {
   btnTestSound.addEventListener("click", () => {
     toast("جاري تجربة الجرس... 🔔");
@@ -383,14 +360,10 @@ if (btnTestSound) {
 }
 
 if (socket) {
-  console.log("Socket.io connected");
   socket.on("new_order", () => {
-    console.log("New order event received via socket!");
     render();
     playOrderSound();
     orderPopup?.classList.add("show");
     toast("وصل طلب جديد! 🔔");
   });
-} else {
-  console.log("Socket.io not supported or not loaded");
 }

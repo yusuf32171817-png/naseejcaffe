@@ -282,118 +282,6 @@ body {
   }
 }
 
-.formGrid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 10px;
-}
-
-.rowActions {
-  display: flex;
-  gap: 10px;
-  margin-top: 12px;
-  flex-wrap: wrap
-}
-
-.miniList {
-  border: 1px solid rgba(255, 255, 255, .10);
-  background: rgba(10, 12, 15, .35);
-  border-radius: 16px;
-  padding: 12px;
-  margin-top: 10px;
-}
-
-.formGrid {
-  grid-template-columns: 1fr
-}
-
-/* ===== Responsive Admin ===== */
-@media (max-width: 980px) {
-  .container {
-    width: min(1200px, 94vw);
-  }
-
-  .topbar {
-    padding: 12px 4vw;
-    flex-direction: column;
-    align-items: stretch;
-    gap: 10px;
-  }
-
-  .actions {
-    width: 100%;
-    justify-content: space-between;
-    gap: 10px;
-  }
-
-  .panelTop {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .filters {
-    width: 100%;
-    flex-direction: column;
-  }
-
-  .filters .input {
-    min-width: 0;
-    width: 100%
-  }
-
-  /* تحويل الجدول إلى Cards */
-  .table {
-    min-width: 0;
-  }
-
-  .table thead {
-    display: none;
-  }
-
-  .table,
-  .table tbody,
-  .table tr,
-  .table td {
-    display: block;
-    width: 100%;
-  }
-
-  .table tr {
-    border: 1px solid rgba(255, 255, 255, .10);
-    background: rgba(10, 12, 15, .35);
-    border-radius: 16px;
-    padding: 12px;
-    margin-bottom: 10px;
-  }
-
-  .table td {
-    border-bottom: 1px solid rgba(255, 255, 255, .08);
-    padding: 10px 0;
-  }
-
-  .table td:last-child {
-    border-bottom: none;
-  }
-
-  /* عنوان لكل سطر */
-  .table td::before {
-    content: attr(data-label);
-    display: block;
-    color: rgba(255, 255, 255, .65);
-    font-size: .85rem;
-    margin-bottom: 6px;
-  }
-
-  /* أزرار داخل الكارد */
-  .smallBtn,
-  .rowBtn {
-    width: 100%;
-    margin: 6px 0 0;
-    text-align: center;
-  }
-}
-
-
 /* ===== Popup Notification ===== */
 .popupOverlay {
   position: fixed;
@@ -457,4 +345,119 @@ body {
   padding: 16px;
   font-size: 1.1rem;
   font-weight: 900;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.rowActions {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+  flex-wrap: wrap
+}
+
+.miniList {
+  border: 1px solid rgba(255, 255, 255, .10);
+  background: rgba(10, 12, 15, .35);
+  border-radius: 16px;
+  padding: 12px;
+  margin-top: 10px;
+}
+
+.formGrid {
+  grid-template-columns: 1fr
+}
+
+/* ===== Responsive Admin ===== */
+/* ===== Orders Grid & Cards ===== */
+.ordersGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 14px;
+}
+
+.orderCard {
+  border: 1px solid var(--stroke);
+  background: linear-gradient(180deg, rgba(255, 255, 255, .05), rgba(255, 255, 255, .02));
+  border-radius: var(--radius);
+  padding: 20px;
+  transition: 0.1s;
+}
+
+.orderCardTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--stroke);
+}
+
+.orderNo {
+  font-size: 1.4rem;
+  font-weight: 1000;
+  color: var(--teal);
+}
+
+.orderTime {
+  margin-right: 15px;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.orderGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.orderInfo {
+  border-left: 1px solid var(--stroke);
+  padding-left: 20px;
+}
+
+.infoRow {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.infoRow span {
+  color: var(--muted);
+}
+
+.orderItems {
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.btnDel {
+  background: rgba(255, 80, 80, .10);
+  border-color: rgba(255, 80, 80, .30);
+  color: #ff6b6b;
+  font-weight: 900;
+}
+
+.btnDel:hover {
+  background: #ff5050;
+  color: #fff;
+  border-color: #ff5050;
+}
+
+@media (max-width: 768px) {
+  .orderGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .orderInfo {
+    border-left: none;
+    border-bottom: 1px dashed var(--stroke);
+    padding-left: 0;
+    padding-bottom: 15px;
+  }
 }

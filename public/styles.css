@@ -405,14 +405,18 @@ a {
   border-radius: 14px;
   padding: 10px 12px;
   font-weight: 1000;
-  border: 1px solid rgba(45, 179, 159, .35);
-  background: linear-gradient(180deg, rgba(45, 179, 159, .22), rgba(45, 179, 159, .08));
+  border: 1px solid var(--teal);
+  background: var(--teal);
+  color: #fff;
   cursor: pointer;
+  transition: 0.2s;
 }
 
 .addBtn:hover {
-  transform: translateY(-1px)
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(45, 179, 159, 0.4);
 }
+
 
 .drawerOverlay {
   position: fixed;

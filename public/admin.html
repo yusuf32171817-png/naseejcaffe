@@ -42,23 +42,8 @@
         </div>
       </div>
 
-      <div class="tableWrap">
-        <table class="table">
-          <thead>
-            <tr>
-              <th>رقم</th>
-              <th>الوقت</th>
-              <th>الهاتف</th>
-              <th>السيارة</th>
-              <th>الاستلام</th>
-              <th>المجموع</th>
-              <th>الحالة</th>
-              <th>تفاصيل</th>
-              <th>إجراءات</th>
-            </tr>
-          </thead>
-          <tbody id="rows"></tbody>
-        </table>
+      <div id="ordersList" class="ordersGrid">
+        <!-- سيتم توليد الطلبات هنا كبطاقات -->
       </div>
     </section>
 
@@ -79,7 +64,8 @@
       <h2 style="margin:0 0 10px;">إدارة المنيو</h2>
 
       <div style="display:grid; grid-template-columns: repeat(6, minmax(0,1fr)); gap:10px;">
-        <input id="mCat" class="input" placeholder="التصنيف">
+        <input id="mCat" class="input" placeholder="التصنيف" list="catList">
+        <datalist id="catList"></datalist>
         <input id="mName" class="input" placeholder="اسم المنتج">
         <input id="mPrice" class="input" placeholder="السعر" inputmode="decimal">
         <input id="mImg" class="input" placeholder="رابط الصورة (اختياري)">
