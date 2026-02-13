@@ -200,8 +200,13 @@ async function loadMenuAdmin() {
         ${items.map(it => `
           <div style="border:1px solid rgba(255,255,255,.10); border-radius:16px; padding:10px; background: rgba(10,12,15,.35);">
             <div style="display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap; align-items:center;">
-              <div style="font-weight:900; margin-bottom: 8px;">
-                <span style="color:var(--teal)">${it.tag}</span> / ${it.category}
+              <div style="display:flex; align-items:center; gap:12px;">
+                <img src="${it.image_url || 'https://placehold.co/100x100/222/FFF?text=No+Img'}" 
+                     style="width:50px; height:50px; border-radius:8px; object-fit:cover; border:1px solid rgba(255,255,255,0.1)"
+                     onerror="this.src='https://placehold.co/100x100/222/FFF?text=Error'">
+                <div style="font-weight:900;">
+                  <span style="color:var(--teal)">${it.tag}</span> / ${it.category}
+                </div>
               </div>
               <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
                 <input class="input" style="width:200px; font-weight:bold;" data-name="${it.id}" value="${it.name}" placeholder="اسم المنتج">

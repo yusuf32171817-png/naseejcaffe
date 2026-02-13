@@ -252,7 +252,10 @@ function renderMenu() {
 
       return `
                 <div class="item" id="prod-${catIndex}-${pIdx}">
-                  <img class="itemImg" src="${prod.image_url || `https://placehold.co/600x400/222/FFF?text=${encodeURIComponent(prod.displayName)}`}" alt="${prod.displayName}">
+                  <img class="itemImg" 
+                    src="${prod.image_url || `https://placehold.co/600x400/222/FFF?text=${encodeURIComponent(prod.displayName)}`}" 
+                    alt="${prod.displayName}"
+                    onerror="this.onerror=null; this.src='https://placehold.co/600x400/222/FFF?text=${encodeURIComponent(prod.displayName)}';">
                   <div class="itemInfo">
                     <div class="itemTitle">${prod.displayName}</div>
                     <div class="itemSub">${prod.note ? prod.note : ""}</div>
