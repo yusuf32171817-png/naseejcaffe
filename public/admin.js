@@ -78,6 +78,7 @@ async function render() {
         
         <div class="orderGrid">
           <div class="orderInfo">
+            <div class="infoRow"><span>الاسم:</span> <b style="color:var(--teal)">${o.customer_name || "—"}</b></div>
             <div class="infoRow"><span>الهاتف:</span> <b>${o.customer_phone}</b></div>
             <div class="infoRow"><span>السيارة:</span> <b>${o.car_no || "—"}</b></div>
             <div class="infoRow"><span>الاستلام:</span> <b>${o.pickup_time}</b></div>

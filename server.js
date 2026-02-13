@@ -31,6 +31,7 @@ db.exec(`
     created_at TEXT NOT NULL,
     status TEXT NOT NULL,
     customer_phone TEXT NOT NULL,
+    customer_name TEXT,
     car_no TEXT,
     pickup_time TEXT,
     note TEXT,
@@ -66,6 +67,10 @@ db.exec(`
   );
   INSERT OR IGNORE INTO settings (key, value) VALUES ('cafe_open', 'true');
 `);
+
+try {
+  db.exec("ALTER TABLE orders ADD COLUMN customer_name TEXT");
+} catch (e) { }
 
 //Migrate existing db if needed
 try {
@@ -318,9 +323,9 @@ app.post("/api/orders", (req, res) => {
 
   const insertOrder = db.prepare(`
     INSERT INTO orders
-  (order_no, created_at, status, customer_phone, car_no, pickup_time, note, subtotal, vat_rate, vat_amount, total)
+  (order_no, created_at, status, customer_phone, customer_name, car_no, pickup_time, note, subtotal, vat_rate, vat_amount, total)
 VALUES
-  (@order_no, @created_at, @status, @customer_phone, @car_no, @pickup_time, @note, @subtotal, @vat_rate, @vat_amount, @total)
+  (@order_no, @created_at, @status, @customer_phone, @customer_name, @car_no, @pickup_time, @note, @subtotal, @vat_rate, @vat_amount, @total)
   `);
 
   const insertItem = db.prepare(`
@@ -334,6 +339,7 @@ VALUES(@order_id, @item_name, @unit_price, @qty, @line_total)
       created_at: createdAt,
       status,
       customer_phone: String(body.customer_phone).trim(),
+      customer_name: body.customer_name ? String(body.customer_name).trim() : null,
       car_no: body.car_no ? String(body.car_no).trim() : null,
       pickup_time: body.pickup_time ? String(body.pickup_time).trim() : "—",
       note: body.note ? String(body.note).trim() : null,
@@ -389,7 +395,7 @@ app.get("/api/orders", (req, res) => {
   }
 
   const rows = db.prepare(`
-    SELECT id, order_no, created_at, status, customer_phone, car_no, pickup_time, note, subtotal, vat_rate, vat_amount, total
+    SELECT id, order_no, created_at, status, customer_phone, customer_name, car_no, pickup_time, note, subtotal, vat_rate, vat_amount, total
     FROM orders
     WHERE ${where}
     ORDER BY id DESC
@@ -414,7 +420,7 @@ app.get("/api/orders", (req, res) => {
 app.get("/api/orders/:id", (req, res) => {
   const id = Number(req.params.id);
   const order = db.prepare(`
-    SELECT id, order_no, created_at, status, customer_phone, car_no, pickup_time, note, subtotal, vat_rate, vat_amount, total
+    SELECT id, order_no, created_at, status, customer_phone, customer_name, car_no, pickup_time, note, subtotal, vat_rate, vat_amount, total
     FROM orders WHERE id = ?
   `).get(id);
 
@@ -505,7 +511,13 @@ app.put("/api/admin/menu/items/:id", requireAdmin, (req, res) => {
     name || null,
     price !== undefined ? Number(price) : null,
     is_active !== undefined ? (is_active ? 1 : 0) : null,
-    image_url ? image_url.trim() : null,
+    image_url ? (() => {
+      let url = image_url.trim();
+      if (url.includes("github.com") && url.includes("/blob/")) {
+        url = url.replace("github.com", "raw.githubusercontent.com").replace("/blob/", "/");
+      }
+      return url;
+    })() : null,
     id
   );
 

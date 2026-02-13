@@ -24,6 +24,7 @@ const floatingOrderBtn = document.getElementById("floatingOrderBtn");
 const btnFloatingCheckout = document.getElementById("btnFloatingCheckout");
 const floatingCartCount = document.getElementById("floatingCartCount");
 
+const nameInput = document.getElementById("nameInput");
 const phoneInput = document.getElementById("phoneInput");
 const carInput = document.getElementById("carInput");
 const noteInput = document.getElementById("noteInput");
@@ -328,6 +329,11 @@ async function checkout() {
     if (hintEl) hintEl.textContent = "أضف أصناف أولاً.";
     return;
   }
+  if (!nameInput?.value.trim()) {
+    if (hintEl) hintEl.textContent = "يرجى كتابة اسمك.";
+    nameInput?.focus();
+    return;
+  }
   if (!phoneOk(phoneInput?.value)) {
     if (hintEl) hintEl.textContent = "يرجى كتابة رقم هاتف صحيح (8 أرقام على الأقل).";
     phoneInput?.focus();
@@ -335,6 +341,7 @@ async function checkout() {
   }
 
   const payload = {
+    customer_name: nameInput.value.trim(),
     customer_phone: phoneInput.value.trim(),
     car_no: carInput?.value.trim() ? carInput.value.trim() : null,
     note: noteInput?.value.trim() ? noteInput.value.trim() : null,

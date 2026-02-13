@@ -37,7 +37,7 @@ async function load() {
     // تعبئة البيانات الأساسية
     document.getElementById("invDate").textContent = fmtDate(o.created_at);
     document.getElementById("invPickup").textContent = o.pickup_time || "—";
-    document.getElementById("cPhone").textContent = o.customer_phone;
+    document.getElementById("cPhone").textContent = (o.customer_name ? o.customer_name + " - " : "") + o.customer_phone;
     document.getElementById("cCar").textContent = o.car_no || "—";
 
     // تعبئة الأصناف
